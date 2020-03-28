@@ -15,6 +15,7 @@ def get_parser(mode='inference'):
             description="Training a deep hashing extractor.")
         parser.add_argument('-Archi_vrs')
         parser.add_argument('-trn_type')
+        parser.add_argument('-val_type')
     elif mode=='inference':
         parser=argparse.ArgumentParser('Hashing',
             description="Perform deep hashing on audio.")
@@ -115,9 +116,19 @@ class Train_Dhash():
                     # outt_zero[idx]=0
                     idx+=1
             yield (left__inp, right_inp), outt_zero
-    def Training(self, conf_DNN, cluster2utt_DICT, utt2feat_DICT):
-        pdb.set_trace()
-        # self.Training_debug( conf_DNN, cluster2utt_DICT, utt2feat_DICT )
+    "Use this when there are no validation data for training"
+    def Training_woval_debug(self, conf_DNN, cluster2utt_DICT, utt2feat_DICT):
+        x_tmp = next( self.generate_samediffpairs(conf_DNN, cluster2utt_DICT, utt2feat_DICT) )
+        print(f"x_tmp[0][0].shape={x_tmp[0][0].shape}")
+        print(f"x_tmp[0][1].shape={x_tmp[0][1].shape}")
+        print(f"x_tmp[1].shape   ={x_tmp[1].shape}")
+        self.Training_model.fit(
+            x_tmp[0],
+            x_tmp[1],
+            epochs=5,
+            callbacks=self.CallbackLst,
+            verbose=1, )
+    def Training_woval(self, conf_DNN, cluster2utt_DICT, utt2feat_DICT):
         history=self.Training_model.fit(
                         self.generate_samediffpairs(conf_DNN, cluster2utt_DICT, utt2feat_DICT),
                         steps_per_epoch=conf_DNN.steps_per_epoch,
@@ -131,17 +142,55 @@ class Train_Dhash():
                     model_path=conf_DNN.Training_model_path,
                     weights_path=conf_DNN.Training_weights_path)
         return history
-    def Training_debug(self, conf_DNN, cluster2utt_DICT, utt2feat_DICT):
+
+    "Use this when there ARE validation data"
+    def Training_wval_debug(self, conf_DNN,
+        cluster2utt_DICT, utt2feat_DICT,
+        cluster2utt_DICT_val, utt2feat_DICT_val):
         x_tmp = next( self.generate_samediffpairs(conf_DNN, cluster2utt_DICT, utt2feat_DICT) )
         print(f"x_tmp[0][0].shape={x_tmp[0][0].shape}")
         print(f"x_tmp[0][1].shape={x_tmp[0][1].shape}")
         print(f"x_tmp[1].shape   ={x_tmp[1].shape}")
+        x_tmp_val = next( self.generate_samediffpairs(conf_DNN, cluster2utt_DICT_val, utt2feat_DICT_val) )
+        print(f"x_tmp_val[0][0].shape={x_tmp_val[0][0].shape}")
+        print(f"x_tmp_val[0][1].shape={x_tmp_val[0][1].shape}")
+        print(f"x_tmp_val[1].shape   ={x_tmp_val[1].shape}")
+
+        pdb.set_trace()
+
         self.Training_model.fit(
-            x_tmp[0],
-            x_tmp[1],
+            x=x_tmp[0], y=x_tmp[1],
+            validation_data=(x_tmp_val[0], x_tmp_val[1]),
             epochs=5,
             callbacks=self.CallbackLst,
             verbose=1, )
+
+        self.Training_model.fit(
+            self.generate_samediffpairs(conf_DNN, cluster2utt_DICT, utt2feat_DICT),
+            steps_per_epoch=5,
+            epochs=5,
+            validation_data=self.generate_samediffpairs(conf_DNN, cluster2utt_DICT_val, utt2feat_DICT_val),
+            validation_steps=conf_DNN.validation_steps,
+            callbacks=self.CallbackLst,
+            verbose=1, )
+    def Training_wval(self, conf_DNN,
+        cluster2utt_DICT, utt2feat_DICT,
+        cluster2utt_DICT_val, utt2feat_DICT_val):
+        history=self.Training_model.fit(
+                        self.generate_samediffpairs(conf_DNN, cluster2utt_DICT, utt2feat_DICT),
+                        steps_per_epoch=conf_DNN.steps_per_epoch,
+                        validation_data=self.generate_samediffpairs(conf_DNN, cluster2utt_DICT_val, utt2feat_DICT_val),
+                        validation_steps=conf_DNN.validation_steps,
+                        epochs=conf_DNN.epochs,
+                        callbacks=self.CallbackLst,
+                        initial_epoch=conf_DNN.initial_epoch,
+                        verbose=2,
+                        )
+                        validation_data=input_val,
+        save_model( self.Training_model,
+                    model_path=conf_DNN.Training_model_path,
+                    weights_path=conf_DNN.Training_weights_path)
+        return history
 class SaveModel(Callback):
     def __init__(self, Training_model, conf_DNN):
         self.Training_model = Training_model

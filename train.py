@@ -14,21 +14,29 @@ if True: ## imports / admin
     conf_DNN=conf.DNN_conf(args.Archi_vrs)
     conf_sr=conf.SR_conf()
     conf_trn=conf.Data_conf(args.trn_type)
+    conf_val=conf.Data_conf(args.val_type)
 
-if True : ######################## Load Data ###############################
+if True : ######################## Load Train Data ###############################
     cluster2utt_DICT=dump_load_pickle(conf_trn.cluster2utt_DICT_path, 'load')
     utt2cluster_DICT=dump_load_pickle(conf_trn.utt2cluster_DICT_path, 'load')
     utt2wavpath_DICT=dump_load_pickle(conf_trn.utt2wavpath_DICT_path, 'load')
     utt2feat_DICT=dump_load_pickle(conf_trn.utt2melspect_DICT_path, 'load')
 
+if True : ######################## Load Val Data ###############################
+    cluster2utt_DICT_val=dump_load_pickle(conf_val.cluster2utt_DICT_path, 'load')
+    utt2cluster_DICT_val=dump_load_pickle(conf_val.utt2cluster_DICT_path, 'load')
+    utt2wavpath_DICT_val=dump_load_pickle(conf_val.utt2wavpath_DICT_path, 'load')
+    utt2feat_DICT_val=dump_load_pickle(conf_val.utt2melspect_DICT_path, 'load')
+
 if True : ######################## Training ###############################
     train_d = Train_Dhash(conf_DNN)
     try:
-        x_dhash=train_d.Training(conf_DNN, cluster2utt_DICT, utt2feat_DICT)
+        # history=train_d.Training_woval(conf_DNN, cluster2utt_DICT, utt2feat_DICT)
+        history=train_d.Training_wval(conf_DNN, cluster2utt_DICT, utt2feat_DICT, cluster2utt_DICT_val, utt2feat_DICT_val)
     except:
         print('\n!!!\n')
         traceback.print_exc()
-        save_model(Training_model,
+        save_model(train_d.Training_model,
                 model_path=conf_DNN.Training_model_path+'.error',
                 weights_path=conf_DNN.Training_weights_path+'.error',
                 verbose=True)

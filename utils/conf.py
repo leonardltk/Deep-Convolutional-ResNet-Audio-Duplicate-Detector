@@ -129,7 +129,7 @@ class DNN_conf():
             self.epochs = 300;
             self.steps_per_epoch = 10000;
 
-            self.validation_steps = 0;
+            self.validation_steps = 100;
         ######################## Optimizer, Metrics Parameters ###############################
         if True: ## Optimizer
             self.opt_mode='Adam'

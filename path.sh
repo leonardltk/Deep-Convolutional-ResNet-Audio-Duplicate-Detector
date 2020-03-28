@@ -10,6 +10,8 @@ COMMENTS
 
 Archi_vrs=SSResCNN
 trn_type=train
+val_type=val
 
 echo "Archi_vrs = $Archi_vrs"
-echo "trn_typ   = $trn_type"
+echo "trn_type  = $trn_type"
+echo "val_type  = $val_type"
