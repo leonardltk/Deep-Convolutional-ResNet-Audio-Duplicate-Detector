@@ -11,7 +11,11 @@ COMMENTS
 Archi_vrs=SSResCNN
 trn_type=train
 val_type=val
+test_type_seen=test_seen
+test_type_unseen=test_unseen
 
-echo "Archi_vrs = $Archi_vrs"
-echo "trn_type  = $trn_type"
-echo "val_type  = $val_type"
+echo "Archi_vrs         = $Archi_vrs"
+echo "trn_type          = $trn_type"
+echo "val_type          = $val_type"
+echo "test_type_seen    = $test_type_seen"
+echo "test_type_unseen  = $test_type_unseen"
